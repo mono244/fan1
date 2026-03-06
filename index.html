@@ -2,27 +2,16 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="utf-8">
-    <title>Anniversary AR</title>
+    <title>Anniversary AR Mixed</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
       #playButton {
-        position: absolute;
-        bottom: 10%;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 15px 30px;
-        background-color: #ff4b4b;
-        color: white;
-        font-size: 18px;
-        font-family: sans-serif;
-        font-weight: bold;
-        border: none;
-        border-radius: 30px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        z-index: 9999;
-        display: none;
-        cursor: pointer;
+        position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
+        padding: 15px 30px; background-color: #ff4b4b; color: white;
+        font-size: 18px; font-family: sans-serif; font-weight: bold;
+        border: none; border-radius: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        z-index: 9999; display: none; cursor: pointer;
       }
     </style>
   </head>
@@ -32,36 +21,54 @@
     <a-scene mindar-image="imageTargetSrc: ./targets.mind; filterMinCF:0.0001; filterBeta: 0.001;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       
       <a-assets>
-        <video id="vid" src="./video4.mp4" webkit-playsinline playsinline loop crossorigin="anonymous"></video>
+        <video id="vid0" src="./video0.mp4" webkit-playsinline playsinline loop crossorigin="anonymous"></video>
+        <img id="msg1" src="./message.png" crossorigin="anonymous">
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <a-entity mindar-image-target="targetIndex: 0" id="target">
-        <a-entity geometry="primitive: plane; width: 1; height: 1.778" material="shader: flat; src: #vid" position="0 0 0" rotation="0 0 0"></a-entity>
+      <a-entity mindar-image-target="targetIndex: 0" id="target0">
+        <a-entity geometry="primitive: plane; width: 1; height: 1.778" material="shader: flat; src: #vid0" position="0 0 0" rotation="0 0 0"></a-entity>
       </a-entity>
+
+      <a-entity mindar-image-target="targetIndex: 1" id="target1">
+        <a-image src="#msg1" position="0 0 0" width="1" height="1.5" rotation="0 0 0"></a-image>
+      </a-entity>
+
     </a-scene>
 
     <script>
-      const target = document.querySelector('#target');
-      const vid = document.querySelector('#vid');
       const playBtn = document.querySelector('#playButton');
+      let currentVideo = null; 
 
-      target.addEventListener("targetFound", event => {
+      // ระบบสำหรับ รูปเป้าหมายที่ 1 (เจอวิดีโอ -> โชว์ปุ่ม)
+      const target0 = document.querySelector('#target0');
+      const vid0 = document.querySelector('#vid0');
+      target0.addEventListener("targetFound", () => {
+        currentVideo = vid0;
         playBtn.style.display = 'block';
       });
-
-      target.addEventListener("targetLost", event => {
-        playBtn.style.display = 'none';
-        vid.pause();
+      target0.addEventListener("targetLost", () => {
+        vid0.pause();
+        if (currentVideo === vid0) { playBtn.style.display = 'none'; currentVideo = null; }
       });
 
+      // ระบบสำหรับ รูปเป้าหมายที่ 2 (เจอภาพข้อความ -> ซ่อนปุ่ม เพราะไม่ต้องกดเล่น)
+      const target1 = document.querySelector('#target1');
+      target1.addEventListener("targetFound", () => {
+        currentVideo = null;
+        playBtn.style.display = 'none';
+      });
+
+      // ฟังก์ชันปุ่มกด
       const tryToPlay = () => {
-        vid.play().then(() => {
-          playBtn.style.display = 'none';
-        }).catch((error) => {
-          alert("Safari Error: " + error.message);
-        });
+        if (currentVideo) {
+          currentVideo.play().then(() => {
+            playBtn.style.display = 'none';
+          }).catch((error) => {
+            alert("Error: " + error.message);
+          });
+        }
       };
 
       playBtn.addEventListener('click', tryToPlay);
